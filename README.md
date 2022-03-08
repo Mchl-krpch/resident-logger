@@ -9,8 +9,12 @@ the `ninth interrupt` is responsible for the program interface. With it, we can 
 ## what is implemented?
 
 - [x] working with macros
-[x] replacing interrupts with your own
-[x] working with other files
-[x] passing the shift of a variable to another file
-[x] running the program in the background
-[x] two hot keys to control the program `ctrl` and `alt`
+- [x] replacing interrupts with your own
+- [x] working with other files
+- [x] passing the shift of a variable to another file
+- [x] running the program in the background
+- [x] two hot keys to control the program `ctrl` and `alt`
+
+#### Thanks for attention!
+I will be glad if you write an issue!
+@Mchl-krpch
