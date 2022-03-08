@@ -8,7 +8,7 @@ the `ninth interrupt` is responsible for the program interface. With it, we can 
 
 ## what is implemented?
 
-[x] working with macros
+- [x] working with macros
 [x] replacing interrupts with your own
 [x] working with other files
 [x] passing the shift of a variable to another file
