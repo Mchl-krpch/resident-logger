@@ -6,4 +6,11 @@ The essence of the program is to draw a window every [55 milliseconds](http://vi
 
 the `ninth interrupt` is responsible for the program interface. With it, we can press the control key and hide the frame, and with the help of alt we can stop the resident
 
+## what is implemented?
 
+- working with macros
+- replacing interrupts with your own
+- working with other files
+- passing the shift of a variable to another file
+- running the program in the background
+- two hot keys to control the program control and alt
