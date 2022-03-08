@@ -1,5 +1,7 @@
 # resident-logger
 
+![preview image](https://raw.githubusercontent.com/Mchl-krpch/resident-logger/main/img/resident-frame.jpg)
+
 ###### the program implements the idea of `replacing interrupts` with their own functions. Thus, the program can run in `resident-mode` and react in a special way to keystrokes.
 
 The essence of the program is to draw a window every [55 milliseconds](http://vitaly_filatov.tripod.com/ng/asm/asm_001.7.html) to show the current value of the registers - this is possible by replacing the `eighth interrupt` with your own.
