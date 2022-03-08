@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------------
-	; Ret: Nothing
-	; Incoming: al - end-of-line char, {bx} - string ptr, si - counter di - pos on screen
-	; destroy:  {di, si}
+  ; Ret: Nothing
+  ; Incoming: al - end-of-line char, {bx} - string ptr, si - counter di - pos on screen
+  ; destroy:  {di, si}
 ;-------------------------------------------------------------------------------
 print PROC
 	MOV   BP,SP
@@ -18,12 +18,10 @@ _print PROC
 	RET
 	ENDP
 
-	;#.The main functions of the library (7 functions)
 ;-------------------------------------------------------------------------------
-; Ret DI-resulting string  
-; Incoming: ax-number to translate, dx-base of system, bx-ptr to string to fill
+  ; Ret DI-resulting string  
+  ; Incoming: ax-number to translate, dx-base of system, bx-ptr to string to fill
 ;-------------------------------------------------------------------------------
-
 itoa proc
 	PUSH  SI
 	XOR   SI,SI                 ; Clear si counter

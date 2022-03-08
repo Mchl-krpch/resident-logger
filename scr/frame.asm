@@ -1,3 +1,9 @@
+;--------------------------------------------------------------------------------------------------------
+  ;  prepares registers for the function of drawing one line to the frame
+  ; LEFT, CENTER, RIGHT - symbols in COLOR_CONFIG:[...] array
+  ; COLOR_CONFIG is array of symbols to drow frame
+  ;  [save-convention]
+;--------------------------------------------------------------------------------------------------------
 LINE_WRAPPER macro LEFT, CENTER, RIGHT, COLOR_CONFIG
 	PUSH  BX AX CX                        ; save 
 	MOV   DS,parent_ds                    ; | get parent regs
@@ -19,26 +25,31 @@ LINE_WRAPPER macro LEFT, CENTER, RIGHT, COLOR_CONFIG
 	POP   CX AX BX                        ; return values
 	ENDM
 
+;--------------------------------------------------------------------------------------------------------
+  ;  translates the register value into hexadecimal number system and displays it on the screen,
+  ; having previously received the offset in the video segment
+  ;  [save-convention]
+;--------------------------------------------------------------------------------------------------------
 UPDATE_REG macro REG, VALUE
-	PUSH  BX DX
-	MOV   SI,offset REG
-	PUSH  DI
-	PUSH  SI
-	CALL  print
-
-	MOV   AX,VALUE
-	MOV   BX,offset itoa_string
-	MOV   DX,16
-	CALL  itoa
-
+	PUSH  BX DX                           ; save regs
+	MOV   SI,offset REG                   ; set string offset to 'print'
+	PUSH  DI                              ; set di for 'print'
+	PUSH  SI                              ; set si for 'print'
+	CALL  print                           ; call header-print
+	MOV   AX,VALUE                        ; set value to translate for 'itoa'
+	MOV   BX,offset itoa_string           ; set string offset to drow to 'itoa'
+	MOV   DX,16                           ; set radix value for 'itoa'
+	CALL  itoa                            ; translate value to hex
 	MOV   SI,BX
-	PUSH  DI
-	PUSH  SI
-	CALL  print
-
-	POP   DX BX DI
+	PUSH  DI                              ; set di value for 'print'
+	PUSH  SI                              ; set si value for 'print'
+	CALL  print                           ; print reg value
+	POP   DX BX DI                        ; return regs
 	ENDM
 
+;--------------------------------------------------------------------------------------------------------
+  ;  drowint window function (use only offset of color config as argument)
+;--------------------------------------------------------------------------------------------------------
 drow_window PROC
 	MOV   BP,SP
 	CALL  define_import_offsets
@@ -61,6 +72,9 @@ drow_window PROC
 	RET   4
 	ENDP
 
+;--------------------------------------------------------------------------------------------------------
+  ; get parent values of ds and offset values
+;--------------------------------------------------------------------------------------------------------
 define_import_offsets PROC
 	MOV   child_ds,DS                     ; {  save ds and si in this
 	MOV   child_si,SI                     ; } file to child buffers
@@ -71,6 +85,9 @@ define_import_offsets PROC
 	RET
 	ENDP
 
+;--------------------------------------------------------------------------------------------------------
+  ; drow-line function (use 3 symbols from stack {left-border, window, right-border}symbol)
+;--------------------------------------------------------------------------------------------------------
 drow_line PROC
 	MOV   BP,SP                           ; make stake great again
 	ADD   DI,[BP + 2]                     ; add offset by left sight of screen
@@ -85,6 +102,10 @@ drow_line PROC
 	RET   10                              ; | so we add to di 30 symbols more
 	ENDP
 
+;--------------------------------------------------------------------------------------------------------
+  ; rounds up di value to new string for example you have only di=50 and it rounds up di to 80
+  ; and it will be new string offset in video-segment
+;--------------------------------------------------------------------------------------------------------
 round_up_di_to_next_string PROC
 	PUSH  CX                              ; save cx
 	MOV   CX,160                          ; add string len (80 * 2) 80 - screen len
@@ -96,6 +117,11 @@ round_up_di_to_next_string PROC
 	RET
 	ENDP
 
+;--------------------------------------------------------------------------------------------------------
+  ; drows registers in frame
+  ; incoming: di
+  ; destroy:  di
+;--------------------------------------------------------------------------------------------------------
 drow_regs PROC
 	CALL  calculate_first_reg_place
 	PUSH  DI
@@ -118,6 +144,9 @@ drow_regs PROC
 	RET
 	ENDP
 
+;--------------------------------------------------------------------------------------------------------
+  ; computing first register place in frame
+;--------------------------------------------------------------------------------------------------------
 calculate_first_reg_place PROC
 	PUSH  AX BX
 	MOV   AX,[word ptr DS:win_props + 2]
@@ -144,17 +173,16 @@ DW 00086h  ; skip of left pixels       [  0]
 DW 00003h  ; skip top pixels           [  2]
 DW 0000Bh  ; width                     [  4]
 DW 00008h  ; height                    [  6] 
-DW 00000h  ; current config            [  8]
 
 colors:
 DW 00000h  ; black background          [  0] # BRUSHES
 DW 01f00h  ; window background         [  2]
-DW 01fcdh  ; horisontAL border         [  4]
-DW 01fbah  ; verticAL border           [  6]
-DW 01Fc9h  ; left upper corner         [  8] # CORNERS
-DW 01fbbh  ; right upper corner        [ 10]
-DW 01fbch  ; right down corner         [ 12]
-DW 01fc8h  ; left down corner          [ 14]
+DW 01FC4h  ; horisontAL border         [  4]
+DW 01FB3h  ; verticAL border           [  6]
+DW 01FDAh  ; left upper corner         [  8] # CORNERS
+DW 01FBFh  ; right upper corner        [ 10]
+DW 01FD9h  ; right down corner         [ 12]
+DW 01FC0h  ; left down corner          [ 14]
 
 colors2:
 DW 00000h  ; black background          [  0] # BRUSHES
