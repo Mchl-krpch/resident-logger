@@ -31,20 +31,14 @@ LINE_WRAPPER macro LEFT, CENTER, RIGHT, COLOR_CONFIG
   ;  [save-convention]
 ;--------------------------------------------------------------------------------------------------------
 UPDATE_REG macro REG, VALUE
-	PUSH  BX DX                           ; save regs
-	MOV   SI,offset REG                   ; set string offset to 'print'
-	PUSH  DI                              ; set di for 'print'
-	PUSH  SI                              ; set si for 'print'
-	CALL  print                           ; call header-print
-	MOV   AX,VALUE                        ; set value to translate for 'itoa'
-	MOV   BX,offset itoa_string           ; set string offset to drow to 'itoa'
-	MOV   DX,16                           ; set radix value for 'itoa'
-	CALL  itoa                            ; translate value to hex
-	MOV   SI,BX
-	PUSH  DI                              ; set di value for 'print'
-	PUSH  SI                              ; set si value for 'print'
-	CALL  print                           ; print reg value
-	POP   DX BX DI                        ; return regs
+	MOV   AX,VALUE
+	MOV   BX,offset itoa_string           ; set string offset to drow to 'itoa_16'
+	CALL  itoa_16
+	MOV   SI,offset REG
+	MOV   DI,CX
+	CALL  print
+	MOV   SI,offset itoa_string
+	CALL  print
 	ENDM
 
 ;--------------------------------------------------------------------------------------------------------
@@ -69,6 +63,7 @@ drow_window PROC
 	loop @@drow_window_line               ; }
 	LINE_WRAPPER  12, 4, 14, BP + 2
 	POP   SI BX
+
 	RET   4
 	ENDP
 
@@ -124,23 +119,21 @@ round_up_di_to_next_string PROC
 ;--------------------------------------------------------------------------------------------------------
 drow_regs PROC
 	CALL  calculate_first_reg_place
-	PUSH  DI
-	UPDATE_REG ax_reg,BP
-	ADD   DI,160
-	PUSH  DI
-	UPDATE_REG bx_reg,SI
-	ADD   DI,160
-	PUSH  DI
-	UPDATE_REG cx_reg,DI
-	ADD   DI,160
-	PUSH  DI
-	UPDATE_REG dx_reg,SI
-	ADD   DI,160
-	PUSH  DI
-	UPDATE_REG di_reg,CS
-	ADD   DI,160
-	PUSH  DI
-	UPDATE_REG si_reg,BP
+	MOV   CX,DI
+	MOV   DI,CS                           ; | identify cs as ds segment
+	MOV   DS,DI                           ; |
+	CALL  set_video_segment               ; identify video segment
+	MOV   AX,[bp - 2]
+	UPDATE_REG ax_reg,AX 
+	ADD   CX,160
+	MOV   AX,[bp - 6]
+	UPDATE_REG bx_reg,AX
+	ADD   CX,160
+	MOV   AX,[bp - 8]
+	UPDATE_REG cx_reg,AX
+	ADD   CX,160
+	MOV   AX,[bp - 10]
+	UPDATE_REG cx_reg,AX
 	RET
 	ENDP
 
@@ -148,6 +141,10 @@ drow_regs PROC
   ; computing first register place in frame
 ;--------------------------------------------------------------------------------------------------------
 calculate_first_reg_place PROC
+	PUSH  SP BP
+	PUSH  AX BX CX DX
+	PUSH  SI DS ES
+
 	PUSH  AX BX
 	MOV   AX,[word ptr DS:win_props + 2]
 	INC   AX
@@ -158,31 +155,46 @@ calculate_first_reg_place PROC
 	ADD   AX,BX
 	MOV   DI,AX
 	POP   BX AX
+
+	POP  ES DS SI
+	POP  DX CX BX AX
+	POP  BP SP
+
 	RET
 	ENDP
+
+
+itoa_string DB '    ',0
+
+origin_es DW 0
+ax_reg DB 'ax:', 0
+bx_reg DB 'bx:', 0
+cx_reg DB 'cx:', 0
+dx_reg DB 'dx:', 0
+di_reg DB 'di:', 0
+si_reg DB 'si:', 0
 
 parent_ds DW 0
 parent_si DW 0
 
 child_ds DW 0
 child_si DW 0
-itoa_string DB '    ',0
 
 win_props:
 DW 00086h  ; skip of left pixels       [  0]
 DW 00003h  ; skip top pixels           [  2]
 DW 0000Bh  ; width                     [  4]
-DW 00008h  ; height                    [  6] 
+DW 00006h  ; height                    [  6] 
 
 colors:
 DW 00000h  ; black background          [  0] # BRUSHES
-DW 01f00h  ; window background         [  2]
-DW 01FC4h  ; horisontAL border         [  4]
-DW 01FB3h  ; verticAL border           [  6]
-DW 01FDAh  ; left upper corner         [  8] # CORNERS
-DW 01FBFh  ; right upper corner        [ 10]
-DW 01FD9h  ; right down corner         [ 12]
-DW 01FC0h  ; left down corner          [ 14]
+DW 00f00h  ; window background         [  2]
+DW 00FC4h  ; horisontAL border         [  4]
+DW 00F00h  ; verticAL border           [  6]
+DW 00FDAh  ; left upper corner         [  8] # CORNERS
+DW 00FBFh  ; right upper corner        [ 10]
+DW 00FD9h  ; right down corner         [ 12]
+DW 00FC0h  ; left down corner          [ 14]
 
 colors2:
 DW 00000h  ; black background          [  0] # BRUSHES
@@ -193,3 +205,13 @@ DW 00Fc9h  ; left upper corner         [  8] # CORNERS
 DW 00fbbh  ; right upper corner        [ 10]
 DW 00fbch  ; right down corner         [ 12]
 DW 00fc8h  ; left down corner          [ 14]
+
+colors_empty:
+DW 00000h  ; black background          [  0] # BRUSHES
+DW 00000h  ; window background         [  2]
+DW 00000h  ; horisontAL border         [  4]
+DW 00000h  ; verticAL border           [  6]
+DW 00000h  ; left upper corner         [  8] # CORNERS
+DW 00000h  ; right upper corner        [ 10]
+DW 00000h  ; right down corner         [ 12]
+DW 00000h  ; left down corner          [ 14]
